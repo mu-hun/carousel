@@ -17,6 +17,7 @@ const Slides = styled.ul`
   left: 0;
   right: 0;
   bottom: 0;
+  margin: 0;
   list-style-type: none;
   transition: opacity 200ms ease;
   background-size: cover;
@@ -42,8 +43,9 @@ const ProgressBarOuter = styled.div`
   right: 0;
 `;
 
-const ProgressBarInner = styled.div`
+const ProgressBarInner = styled.div<{ progress: number }>`
   background-color: hsla(0, 100%, 100%, 0.25);
+  width: ${props => props.progress * 100}%;
   height: 20px;
 `;
 
@@ -87,6 +89,7 @@ const IconButton = styled.button`
 
 const SpacerGif = styled.div`
   display: inline-block;
+  width: 10px;
 `;
 
 export {
