@@ -1,4 +1,4 @@
-import React from 'react';
+import React, { useState, useEffect } from 'react';
 
 import * as S from './whatevs/styled';
 import slides from './whatevs/slides';
@@ -11,7 +11,19 @@ import Alert from '@reach/alert';
 let SLIDE_DURATION = 3000;
 
 export default function App() {
-  let currentIndex = 0;
+  let [currentIndex, setCurrentIndex] = useState(0);
+
+  const [isPlaying, setIsPlaying] = useState(false);
+
+  useEffect(() => {
+    if (isPlaying) {
+      const timeout = setTimeout(() => {
+        setCurrentIndex((currentIndex + 1) % slides.length);
+      }, SLIDE_DURATION);
+      return () => clearTimeout(timeout);
+    }
+  }, [currentIndex, isPlaying]);
+
   return (
     <S.Carousel aria-label="Images from Space">
       <S.Slides>
@@ -39,28 +51,38 @@ export default function App() {
         ))}
       </S.SlideNav>
       <S.Controls>
-        {false ? (
+        {isPlaying ? (
           <S.IconButton
             aria-label="Pause"
-            onClick={() => {}}
+            onClick={() => {
+              setIsPlaying(false);
+            }}
             children={<FaPause />}
           />
         ) : (
           <S.IconButton
             aria-label="Play"
-            onClick={() => {}}
+            onClick={() => {
+              setIsPlaying(true);
+            }}
             children={<FaPlay />}
           />
         )}
         <S.SpacerGif />
         <S.IconButton
           aria-label="Previous Slide"
-          onClick={() => {}}
+          onClick={() => {
+            setCurrentIndex((currentIndex - 1 + slides.length) % slides.length);
+            setIsPlaying(false);
+          }}
           children={<FaBackward />}
         />
         <S.IconButton
           aria-label="Next Slide"
-          onClick={() => {}}
+          onClick={() => {
+            setCurrentIndex((currentIndex + 1) % slides.length);
+            setIsPlaying(false);
+          }}
           children={<FaForward />}
         />
       </S.Controls>
