@@ -1,5 +1,7 @@
 import React, { useState, useEffect } from 'react';
 
+import useReducer from './hooks/useReducer';
+
 import * as S from './whatevs/styled';
 import slides from './whatevs/slides';
 import './whatevs/index.css';
@@ -11,18 +13,26 @@ import Alert from '@reach/alert';
 let SLIDE_DURATION = 3000;
 
 export default function App() {
-  let [currentIndex, setCurrentIndex] = useState(0);
+  const {
+    state,
+    onProgress,
+    onNext,
+    onPrev,
+    onPlay,
+    onPause,
+    onGOTO
+  } = useReducer(slides.length);
 
-  const [isPlaying, setIsPlaying] = useState(false);
+  const { currentIndex, isPlaying, takeFocus } = state;
 
   useEffect(() => {
     if (isPlaying) {
       const timeout = setTimeout(() => {
-        setCurrentIndex((currentIndex + 1) % slides.length);
+        onProgress();
       }, SLIDE_DURATION);
       return () => clearTimeout(timeout);
     }
-  }, [currentIndex, isPlaying]);
+  }, [currentIndex, isPlaying, onProgress]);
 
   return (
     <S.Carousel aria-label="Images from Space">
@@ -33,7 +43,7 @@ export default function App() {
             id={`image-${index}`}
             title={image.title}
             isCurrent={index === currentIndex}
-            takeFocus={false}
+            takeFocus={takeFocus}
             image={image.img}
             children={<p>{image.content}</p>}
           />
@@ -46,7 +56,7 @@ export default function App() {
             isCurrent={index === currentIndex}
             aria-label={`Slide ${index}`}
             label={`Slide ${index + 1}`}
-            onClick={() => {}}
+            onClick={() => onGOTO(index)}
           />
         ))}
       </S.SlideNav>
@@ -54,35 +64,25 @@ export default function App() {
         {isPlaying ? (
           <S.IconButton
             aria-label="Pause"
-            onClick={() => {
-              setIsPlaying(false);
-            }}
+            onClick={() => onPause()}
             children={<FaPause />}
           />
         ) : (
           <S.IconButton
             aria-label="Play"
-            onClick={() => {
-              setIsPlaying(true);
-            }}
+            onClick={() => onPlay()}
             children={<FaPlay />}
           />
         )}
         <S.SpacerGif />
         <S.IconButton
           aria-label="Previous Slide"
-          onClick={() => {
-            setCurrentIndex((currentIndex - 1 + slides.length) % slides.length);
-            setIsPlaying(false);
-          }}
+          onClick={() => onPrev()}
           children={<FaBackward />}
         />
         <S.IconButton
           aria-label="Next Slide"
-          onClick={() => {
-            setCurrentIndex((currentIndex + 1) % slides.length);
-            setIsPlaying(false);
-          }}
+          onClick={() => onNext()}
           children={<FaForward />}
         />
       </S.Controls>
@@ -101,8 +101,16 @@ const Slide: React.FC<{
   id: string;
   title: string;
 }> = ({ isCurrent, takeFocus, image, id, title, children }) => {
+  const ref = useRef<HTMLLIElement>(null);
+
+  useEffect(() => {
+    if (isCurrent && takeFocus) {
+      ref.current?.focus();
+    }
+  }, [isCurrent, takeFocus]);
   return (
     <li
+      ref={ref}
       aria-hidden={!isCurrent}
       tabIndex={-1}
       aria-labelledby={id}
